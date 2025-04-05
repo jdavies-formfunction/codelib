@@ -259,20 +259,21 @@ try {
                 updateTagFilter();
             }
         };
-    });
 
-    // Delete solution function
-    window.deleteSolution = function(id) {
-        if (confirm('Are you sure you want to delete this solution?')) {
-            const solutions = JSON.parse(localStorage.getItem('solutions') || '[]');
-            const updatedSolutions = solutions.filter(s => s.id !== id);
-            localStorage.setItem('solutions', JSON.stringify(updatedSolutions));
-            
-            // Reload solutions and update tag filter
-            loadSolutions();
-            updateTagFilter();
-        }
-    };
+        // Delete solution function (moved inside DOMContentLoaded)
+        window.deleteSolution = function(id) {
+            if (confirm('Are you sure you want to delete this solution?')) {
+                const solutions = JSON.parse(localStorage.getItem('solutions') || '[]');
+                const updatedSolutions = solutions.filter(s => s.id !== id);
+                localStorage.setItem('solutions', JSON.stringify(updatedSolutions));
+                
+                // Reload solutions and update tag filter
+                loadSolutions();
+                updateTagFilter();
+            }
+        };
+
+    });
 
 } catch (error) {
     console.error('Error in script:', error);
