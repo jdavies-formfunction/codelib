@@ -97,7 +97,7 @@ body {
 
 .view {
     display: none;
-    background-color: white;
+    background-color: #ECE8E8;
     padding: 40px;
     border-radius: opx;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -141,6 +141,7 @@ button {
     border-radius: 40px;
     cursor: pointer;
     font-size: 16px;
+    transition: background-color 0.3s;
 }
 
 button:hover {
