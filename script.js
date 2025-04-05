@@ -191,3 +191,16 @@ function createSolutionCard(solution) {
         }
     };
 });
+
+// Delete solution function
+window.deleteSolution = function(id) {
+    if (confirm('Are you sure you want to delete this solution?')) {
+        const solutions = JSON.parse(localStorage.getItem('solutions') || '[]');
+        const updatedSolutions = solutions.filter(s => s.id !== id);
+        localStorage.setItem('solutions', JSON.stringify(updatedSolutions));
+        
+        // Reload solutions and update tag filter
+        loadSolutions();
+        updateTagFilter();
+    }
+};
