@@ -220,8 +220,7 @@ button:hover {
     background-color: #c82333;
 }
 
-/* Log in*/
-
+/* Login Styles */
 .login-container {
     position: fixed;
     top: 0;
@@ -247,4 +246,9 @@ button:hover {
 .login-box h2 {
     margin-bottom: 20px;
     text-align: center;
+}
+
+/* Hide main content when not logged in */
+.layout {
+    display: none;
 }
