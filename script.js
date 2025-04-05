@@ -75,8 +75,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load and display solutions
     function loadSolutions() {
-        const solutions = JSON.parse(localStorage.getItem('solutions') || '[]');
-        solutionsList.innerHTML = '';
+    console.log('Loading solutions...');
+    const solutions = JSON.parse(localStorage.getItem('solutions') || '[]');
+    console.log('Found solutions:', solutions);
+    solutionsList.innerHTML = '';
         
         solutions.forEach(solution => {
             const solutionCard = createSolutionCard(solution);
