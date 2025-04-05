@@ -2,13 +2,13 @@
 * {
     box-sizing: border-box;
     margin: 0;
-    padding: 0;
+    padding: 20px;
 }
 
 body {
     font-family: 'Inter', sans-serif;
     line-height: 1.6;
-    background-color: #f4f4f4;
+    background-color: #FAF8F8;
 }
 
 .layout {
@@ -18,10 +18,10 @@ body {
 
 /* Sidebar Styles */
 .sidebar {
-    width: 250px;
-    background-color: #333;
+    width: 300px;
+    background-color: #68E5A7;
     color: white;
-    padding: 20px;
+    padding: 60px;
     position: fixed;
     height: 100vh;
     overflow-y: auto;
