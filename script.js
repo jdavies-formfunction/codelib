@@ -1,20 +1,23 @@
 // script.js
+console.log('Script starting...');
 
+try {
 // login
 let currentUser = null;
 
 // Check authentication state
 firebase.auth().onAuthStateChanged((user) => {
-    if (user) {
-        currentUser = user;
-        document.getElementById('loginContainer').style.display = 'none';
-        document.querySelector('.layout').style.display = 'flex';
-    } else {
-        currentUser = null;
-        document.getElementById('loginContainer').style.display = 'flex';
-        document.querySelector('.layout').style.display = 'none';
-    }
-});
+        console.log('Auth state changed:', user);
+        if (user) {
+            currentUser = user;
+            document.getElementById('loginContainer').style.display = 'none';
+            document.querySelector('.layout').style.display = 'flex';
+        } else {
+            currentUser = null;
+            document.getElementById('loginContainer').style.display = 'flex';
+            document.querySelector('.layout').style.display = 'none';
+        }
+    });
 
 // Handle login
 document.getElementById('loginForm').addEventListener('submit', (e) => {
@@ -249,3 +252,8 @@ window.deleteSolution = function(id) {
         updateTagFilter();
     }
 };
+
+ // Rest of your code...
+} catch (error) {
+    console.error('Error in script:', error);
+}
