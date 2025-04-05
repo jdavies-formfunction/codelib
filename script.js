@@ -63,31 +63,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Handle form submission
     solutionForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Get form values
-        const solution = {
-            id: Date.now(),
-            title: document.getElementById('title').value,
-            description: document.getElementById('description').value,
-            initialCode: document.getElementById('initialCode').value,
-            finalCode: document.getElementById('finalCode').value,
-            additionalScripts: document.getElementById('additionalScripts').value,
-            tags: document.getElementById('tags').value.split(',').map(tag => tag.trim()),
-            notes: document.getElementById('notes').value,
-            date: new Date().toISOString()
-        };
-        
-        // Save solution
-        saveSolution(solution);
-        
-        // Reset form
-        solutionForm.reset();
-        
-        // Reload solutions and update tag filter
-        loadSolutions();
-        updateTagFilter();
-    });
+    e.preventDefault();
+    
+    // Get form values
+    const solution = {
+        id: Date.now(),
+        title: document.getElementById('title').value,
+        description: document.getElementById('description').value,
+        initialCode: document.getElementById('initialCode').value,
+        finalCode: document.getElementById('finalCode').value,
+        additionalScripts: document.getElementById('additionalScripts').value,
+        tags: document.getElementById('tags').value.split(',').map(tag => tag.trim()),
+        notes: document.getElementById('notes').value,
+        date: new Date().toISOString()
+    };
+    
+    console.log('Saving solution:', solution); // Debug log
+    
+    // Save solution
+    saveSolution(solution);
+    
+    // Reset form
+    solutionForm.reset();
+    
+    // Reload solutions and update tag filter
+    loadSolutions();
+    updateTagFilter();
+});
 
     // Navigation setup
     function setupNavigation() {
@@ -123,24 +125,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load and display solutions
     function loadSolutions() {
-    console.log('Loading solutions...');
-    const solutions = JSON.parse(localStorage.getItem('solutions') || '[]');
-    console.log('Found solutions:', solutions);
-    solutionsList.innerHTML = '';
+    try {
+        console.log('Loading solutions...');
+        const solutions = JSON.parse(localStorage.getItem('solutions') || '[]');
+        console.log('Found solutions:', solutions);
+        solutionsList.innerHTML = '';
+        
+        if (solutions.length === 0) {
+            solutionsList.innerHTML = '<p>No solutions found. Add your first solution!</p>';
+            return;
+        }
         
         solutions.forEach(solution => {
+            console.log('Creating card for solution:', solution);
             const solutionCard = createSolutionCard(solution);
             solutionsList.appendChild(solutionCard);
         });
+    } catch (error) {
+        console.error('Error loading solutions:', error);
+        solutionsList.innerHTML = '<p>Error loading solutions. Please try refreshing the page.</p>';
     }
+}
 
     // Create solution card
 function createSolutionCard(solution) {
+    console.log('Creating card for solution:', solution); // Debug log
     const card = document.createElement('div');
     card.className = 'solution-card';
     
     let additionalScriptsHtml = '';
     if (solution.additionalScripts) {
+        console.log('Additional scripts found:', solution.additionalScripts); // Debug log
         additionalScriptsHtml = '<h4>Additional Scripts:</h4><pre class="code-block">' + solution.additionalScripts + '</pre>';
     }
     
