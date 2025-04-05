@@ -28,7 +28,15 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
         });
 });
 
-// Add logout functionality
+// Add logout button to your navigation
+function addLogoutButton() {
+    const nav = document.querySelector('.sidebar ul');
+    const logoutLi = document.createElement('li');
+    logoutLi.innerHTML = '<a href="#" class="nav-link" onclick="logout()">Logout</a>';
+    nav.appendChild(logoutLi);
+}
+
+// Logout function
 function logout() {
     firebase.auth().signOut();
 }
@@ -48,6 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadSolutions();
     setupNavigation();
     updateTagFilter();
+    addLogoutButton();
 
     // Handle form submission
     solutionForm.addEventListener('submit', function(e) {
