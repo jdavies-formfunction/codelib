@@ -139,33 +139,34 @@ function createSolutionCard(solution) {
     const card = document.createElement('div');
     card.className = 'solution-card';
     
-    card.innerHTML = `
-        <h3>${solution.title}</h3>
-        <p>${solution.description}</p>
+    let additionalScriptsHtml = '';
+    if (solution.additionalScripts) {
+        additionalScriptsHtml = '<h4>Additional Scripts:</h4><pre class="code-block">' + solution.additionalScripts + '</pre>';
+    }
+    
+    card.innerHTML = 
+        '<h3>' + solution.title + '</h3>' +
+        '<p>' + solution.description + '</p>' +
         
-        <h4>Initial Code:</h4>
-        <pre class="code-block">${solution.initialCode}</pre>
+        '<h4>Initial Code:</h4>' +
+        '<pre class="code-block">' + solution.initialCode + '</pre>' +
         
-        <h4>Final Solution:</h4>
-        <pre class="code-block">${solution.finalCode}</pre>
+        '<h4>Final Solution:</h4>' +
+        '<pre class="code-block">' + solution.finalCode + '</pre>' +
         
-        ${solution.additionalScripts ? `
-            <h4>Additional Scripts:</h4>
-            <pre class="code-block">${solution.additionalScripts}</pre>
-        ` : ''}
+        additionalScriptsHtml +
         
-        <div class="tags">
-            ${solution.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-        </div>
+        '<div class="tags">' +
+        solution.tags.map(tag => '<span class="tag">' + tag + '</span>').join('') +
+        '</div>' +
         
-        <p><strong>Notes:</strong> ${solution.notes}</p>
-        <p><small>Added: ${new Date(solution.date).toLocaleDateString()}</small></p>
+        '<p><strong>Notes:</strong> ' + solution.notes + '</p>' +
+        '<p><small>Added: ' + new Date(solution.date).toLocaleDateString() + '</small></p>' +
         
-        <div class="button-group">
-            <button class="edit-button" onclick="editSolution(${solution.id})">Edit Solution</button>
-            <button class="delete-button" onclick="deleteSolution(${solution.id})">Delete Solution</button>
-        </div>
-    `;
+        '<div class="button-group">' +
+        '<button class="edit-button" onclick="editSolution(' + solution.id + ')">Edit Solution</button>' +
+        '<button class="delete-button" onclick="deleteSolution(' + solution.id + ')">Delete Solution</button>' +
+        '</div>';
     
     return card;
 }
