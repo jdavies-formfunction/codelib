@@ -6,14 +6,28 @@
     <title>Code Solution Tracker</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <!-- Your existing script -->
-<script src="script.js"></script>
 </head>
 <body>
-    <div class="layout">
+    <!-- Login Container -->
+    <div id="loginContainer" class="login-container">
+        <div class="login-box">
+            <h2>Login</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Content (initially hidden) -->
+    <div class="layout" style="display: none;">
         <!-- Navigation Sidebar -->
         <nav class="sidebar">
             <h2>Navigation</h2>
@@ -31,26 +45,7 @@
             </div>
         </nav>
 
-            <!-- Login Container -->
-    <div id="loginContainer" class="login-container">
-        <div class="login-box">
-            <h2>Login</h2>
-            <form id="loginForm">
-                <div class="form-group">
-                    <label for="email">Email:</label>
-                    <input type="email" id="email" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Password:</label>
-                    <input type="password" id="password" required>
-                </div>
-                <button type="submit">Login</button>
-            </form>
-        </div>
-    </div>
-        
         <!-- Main Content Area -->
-        <div class="layout" style="display: none;">
         <main class="main-content">
             <!-- Add New Solution Form -->
             <div id="addView" class="view active">
@@ -94,7 +89,6 @@
                     <button type="submit">Save Solution</button>
                 </form>
             </div>
-        </div>
 
             <!-- View All Solutions -->
             <div id="viewView" class="view">
@@ -104,9 +98,9 @@
         </main>
     </div>
 
-<!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-auth-compat.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     
     <!-- Firebase Config -->
     <script>
@@ -121,6 +115,7 @@
         firebase.initializeApp(firebaseConfig);
     </script>
     
+    <!-- Your existing script -->
     <script src="script.js"></script>
 </body>
 </html>
