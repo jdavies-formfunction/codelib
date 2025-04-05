@@ -1,4 +1,40 @@
 // script.js
+
+// login
+let currentUser = null;
+
+// Check authentication state
+firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        currentUser = user;
+        document.getElementById('loginContainer').style.display = 'none';
+        document.querySelector('.layout').style.display = 'flex';
+    } else {
+        currentUser = null;
+        document.getElementById('loginContainer').style.display = 'flex';
+        document.querySelector('.layout').style.display = 'none';
+    }
+});
+
+// Handle login
+document.getElementById('loginForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    firebase.auth().signInWithEmailAndPassword(email, password)
+        .catch((error) => {
+            alert('Login failed: ' + error.message);
+        });
+});
+
+// Add logout functionality
+function logout() {
+    firebase.auth().signOut();
+}
+
+
+
 document.addEventListener('DOMContentLoaded', function() {
     // DOM Elements
     const solutionForm = document.getElementById('solutionForm');
