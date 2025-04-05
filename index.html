@@ -1,84 +1,60 @@
-// script.js
-document.addEventListener('DOMContentLoaded', function() {
-    const solutionForm = document.getElementById('solutionForm');
-    const solutionsList = document.getElementById('solutionsList');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Solution Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Code Solution Tracker</h1>
+        
+        <!-- Form to add new solutions -->
+        <div class="add-solution">
+            <h2>Add New Solution</h2>
+            <form id="solutionForm">
+                <div class="form-group">
+                    <label for="title">Title:</label>
+                    <input type="text" id="title" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Description:</label>
+                    <textarea id="description" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="initialCode">Initial Code:</label>
+                    <textarea id="initialCode" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="finalCode">Final Solution:</label>
+                    <textarea id="finalCode" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="tags">Tags (comma separated):</label>
+                    <input type="text" id="tags">
+                </div>
+                
+                <div class="form-group">
+                    <label for="notes">Notes:</label>
+                    <textarea id="notes"></textarea>
+                </div>
+                
+                <button type="submit">Save Solution</button>
+            </form>
+        </div>
+        
+        <!-- Display solutions -->
+        <div class="solutions-list">
+            <h2>Saved Solutions</h2>
+            <div id="solutionsList"></div>
+        </div>
+    </div>
     
-    // Load existing solutions
-    loadSolutions();
-    
-    // Handle form submission
-    solutionForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Get form values
-        const solution = {
-            id: Date.now(), // Unique ID for each solution
-            title: document.getElementById('title').value,
-            description: document.getElementById('description').value,
-            initialCode: document.getElementById('initialCode').value,
-            finalCode: document.getElementById('finalCode').value,
-            tags: document.getElementById('tags').value.split(',').map(tag => tag.trim()),
-            notes: document.getElementById('notes').value,
-            date: new Date().toISOString()
-        };
-        
-        // Save solution
-        saveSolution(solution);
-        
-        // Reset form
-        solutionForm.reset();
-        
-        // Reload solutions
-        loadSolutions();
-    });
-    
-    function saveSolution(solution) {
-        // Get existing solutions
-        let solutions = JSON.parse(localStorage.getItem('solutions') || '[]');
-        
-        // Add new solution
-        solutions.push(solution);
-        
-        // Save back to localStorage
-        localStorage.setItem('solutions', JSON.stringify(solutions));
-    }
-    
-    function loadSolutions() {
-        // Get solutions from localStorage
-        const solutions = JSON.parse(localStorage.getItem('solutions') || '[]');
-        
-        // Clear current list
-        solutionsList.innerHTML = '';
-        
-        // Add each solution to the page
-        solutions.forEach(solution => {
-            const solutionCard = createSolutionCard(solution);
-            solutionsList.appendChild(solutionCard);
-        });
-    }
-    
-    function createSolutionCard(solution) {
-        const card = document.createElement('div');
-        card.className = 'solution-card';
-        
-        card.innerHTML = `
-            <h3>${solution.title}</h3>
-            <p>${solution.description}</p>
-            
-            <h4>Initial Code:</h4>
-            <pre class="code-block">${solution.initialCode}</pre>
-            
-            <h4>Final Solution:</h4>
-            <pre class="code-block">${solution.finalCode}</pre>
-            
-            <div class="tags">
-                ${solution.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-            </div>
-            
-            <p><strong>Notes:</strong> ${solution.notes}</p>
-            <p><small>Added: ${new Date(solution.date).toLocaleDateString()}</small></p>
-        `;
-        
-        return card;
-    }
-});
+    <script src="script.js"></script>
+</body>
+</html>
