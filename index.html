@@ -7,52 +7,75 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Code Solution Tracker</h1>
-        
-        <!-- Form to add new solutions -->
-        <div class="add-solution">
-            <h2>Add New Solution</h2>
-            <form id="solutionForm">
-                <div class="form-group">
-                    <label for="title">Title:</label>
-                    <input type="text" id="title" required>
+    <div class="layout">
+        <!-- Navigation Sidebar -->
+        <nav class="sidebar">
+            <h2>Navigation</h2>
+            <ul>
+                <li><a href="#" class="nav-link active" data-view="add">Add New</a></li>
+                <li><a href="#" class="nav-link" data-view="view">View All</a></li>
+            </ul>
+            
+            <!-- Tag Filter (initially hidden) -->
+            <div id="tagFilter" class="tag-filter" style="display: none;">
+                <h3>Filter by Tags</h3>
+                <div id="tagList" class="tag-list">
+                    <!-- Tags will be populated by JavaScript -->
                 </div>
-                
-                <div class="form-group">
-                    <label for="description">Description:</label>
-                    <textarea id="description" required></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="initialCode">Initial Code:</label>
-                    <textarea id="initialCode" required></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="finalCode">Final Solution:</label>
-                    <textarea id="finalCode" required></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="tags">Tags (comma separated):</label>
-                    <input type="text" id="tags">
-                </div>
-                
-                <div class="form-group">
-                    <label for="notes">Notes:</label>
-                    <textarea id="notes"></textarea>
-                </div>
-                
-                <button type="submit">Save Solution</button>
-            </form>
-        </div>
-        
-        <!-- Display solutions -->
-        <div class="solutions-list">
-            <h2>Saved Solutions</h2>
-            <div id="solutionsList"></div>
-        </div>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Add New Solution Form -->
+            <div id="addView" class="view active">
+                <h1>Add New Solution</h1>
+                <form id="solutionForm">
+                    <div class="form-group">
+                        <label for="title">Title:</label>
+                        <input type="text" id="title" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description">Description:</label>
+                        <textarea id="description" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="initialCode">Initial Code:</label>
+                        <textarea id="initialCode" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="finalCode">Final Solution:</label>
+                        <textarea id="finalCode" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="additionalScripts">Additional Scripts (JavaScript, etc.):</label>
+                        <textarea id="additionalScripts"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="tags">Tags (comma separated):</label>
+                        <input type="text" id="tags">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="notes">Notes:</label>
+                        <textarea id="notes"></textarea>
+                    </div>
+                    
+                    <button type="submit">Save Solution</button>
+                </form>
+            </div>
+
+            <!-- View All Solutions -->
+            <div id="viewAll" class="view">
+                <h1>Saved Solutions</h1>
+                <div id="solutionsList"></div>
+            </div>
+        </main>
     </div>
     
     <script src="script.js"></script>
