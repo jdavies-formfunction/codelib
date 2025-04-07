@@ -95,7 +95,7 @@ function loadSolutions(selectedTags = []) {
         .then(snapshot => {
             console.log('Snapshot:', snapshot);
             const list = document.getElementById('solutionsList');
-            list.innerHTML = ''; // Clear previous list
+            list.innerHTML = '';
 
             const allTags = new Set();
 
@@ -112,7 +112,6 @@ function loadSolutions(selectedTags = []) {
 
                 const card = document.createElement('div');
                 card.className = 'solution-card';
-                card.dataset.id = doc.id; // Store the solution ID on the card
 
                 card.innerHTML = `
                     <h3>${data.title}</h3>
@@ -126,33 +125,94 @@ function loadSolutions(selectedTags = []) {
                         return `<span class="tag">${tag}</span>`;
                     }).join('')}</div>
                     <div class="button-group">
-                        <button class="delete-button">Delete</button>
+                        <button class="view-button" data-id="${doc.id}">View</button>
+                        <button class="delete-button" data-id="${doc.id}">Delete</button>
                     </div>
                 `;
-
-                // Add event listener for delete button
-                const deleteButton = card.querySelector('.delete-button');
-                deleteButton.addEventListener('click', () => {
-                    const solutionId = card.dataset.id;
-
-                    // Delete from Firestore
-                    db.collection('solutions').doc(solutionId).delete()
-                        .then(() => {
-                            console.log('Solution deleted from Firestore');
-                            card.remove(); // Remove from the DOM
-                        })
-                        .catch(error => {
-                            console.error('Error deleting solution:', error);
-                        });
-                });
 
                 list.appendChild(card);
             });
 
             renderTagFilters(Array.from(allTags), selectedTags);
+
+            // Add event listener for "View" buttons
+            document.querySelectorAll('.view-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const id = button.getAttribute('data-id');
+                    expandSolutionView(id);
+                });
+            });
+
+            // Add event listener for "Delete" buttons
+            document.querySelectorAll('.delete-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const id = button.getAttribute('data-id');
+                    deleteSolution(id);
+                });
+            });
         })
         .catch(error => {
             console.error('Error loading solutions:', error);
+        });
+}
+
+// Function to delete a solution
+function deleteSolution(id) {
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+
+    db.collection('solutions').doc(id).delete()
+        .then(() => {
+            console.log('Solution deleted');
+            loadSolutions(); // Reload the list of solutions after deletion
+        })
+        .catch(error => {
+            console.error('Error deleting solution:', error);
+        });
+}
+
+// Function to show expanded view of a solution
+function expandSolutionView(id) {
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+
+    db.collection('solutions').doc(id).get()
+        .then(doc => {
+            const data = doc.data();
+            if (data) {
+                const expandedView = document.getElementById('expandedView');
+                expandedView.innerHTML = `
+                    <h3>${data.title}</h3>
+                    <p><strong>Description:</strong> ${data.description}</p>
+                    <div class="code-block"><strong>Initial Code:</strong><br>${data.initialCode}</div>
+                    <div class="code-block"><strong>Final Code:</strong><br>${data.finalCode}</div>
+                    ${data.additionalScripts ? `<div class="code-block"><strong>Scripts:</strong><br>${data.additionalScripts}</div>` : ''}
+                    <div class="code-block"><strong>Notes:</strong><br>${data.notes || ''}</div>
+                    <div class="tags">${(data.tags || []).map(tag => `<span class="tag">${tag}</span>`).join('')}</div>
+                    <div class="button-group">
+                        <button class="delete-button" data-id="${doc.id}">Delete</button>
+                        <button class="return-button">Return to List</button>
+                    </div>
+                `;
+
+                // Show the expanded view and hide the list
+                document.getElementById('solutionsList').style.display = 'none';
+                expandedView.style.display = 'block';
+
+                // Add event listener for "Return to List" button
+                document.querySelector('.return-button').addEventListener('click', () => {
+                    document.getElementById('solutionsList').style.display = 'block';
+                    expandedView.style.display = 'none';
+                });
+
+                // Add event listener for delete button in expanded view
+                document.querySelector('.delete-button').addEventListener('click', () => {
+                    deleteSolution(id);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching solution:', error);
         });
 }
 
