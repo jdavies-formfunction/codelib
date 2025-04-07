@@ -172,39 +172,46 @@ function renderTagFilters(tags, selectedTags = []) {
     });
 }
 
-// Retrieve solutions from localStorage and migrate to Firestore
-const solutions = JSON.parse(localStorage.getItem('solutions'));
-if (solutions && solutions.length > 0) {
-    console.log('Solutions found in localStorage:', solutions);  // Debug log
-    const user = firebase.auth().currentUser;
-
-    if (!user) {
+// Firebase authentication state listener
+firebase.auth().onAuthStateChanged(user => {
+    if (user) {
+        // User is authenticated, proceed with migration
+        migrateSolutions(user);
+    } else {
         console.error('No user logged in! Cannot migrate solutions.');
-        return;
     }
+});
 
-    solutions.forEach(solution => {
-        console.log('Migrating solution:', solution);  // Debug log
+// Function to migrate solutions
+function migrateSolutions(user) {
+    // Retrieve solutions from localStorage
+    const solutions = JSON.parse(localStorage.getItem('solutions'));
+    
+    if (solutions && solutions.length > 0) {
+        console.log('Solutions found in localStorage:', solutions);
 
-        // Use the solution's id as a fallback if uid is not available
-        const solutionId = solution.id || user.uid;  // Fallback to user.uid if id is not present
+        solutions.forEach(solution => {
+            console.log('Migrating solution:', solution);
 
-        db.collection('solutions').add({
-            uid: solutionId,  // Use solution.id or fallback to user.uid
-            title: solution.title,
-            description: solution.description,
-            initialCode: solution.initialCode,
-            finalCode: solution.finalCode,
-            additionalScripts: solution.additionalScripts,
-            tags: solution.tags,
-            notes: solution.notes,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(() => {
-            console.log('Solution successfully added to Firestore');
-        }).catch(err => {
-            console.error('Error saving solution to Firestore:', err);
+            // Use the logged-in user's UID
+            db.collection('solutions').add({
+                uid: user.uid,  // Ensure the user UID is used
+                title: solution.title,
+                description: solution.description,
+                initialCode: solution.initialCode,
+                finalCode: solution.finalCode,
+                additionalScripts: solution.additionalScripts,
+                tags: solution.tags,
+                notes: solution.notes,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                console.log('Solution successfully added to Firestore');
+            }).catch(err => {
+                console.error('Error saving solution to Firestore:', err);
+            });
         });
-    });
-} else {
-    console.log('No solutions found in localStorage');  // Debug log
+    } else {
+        console.log('No solutions found in localStorage');
+    }
 }
+
