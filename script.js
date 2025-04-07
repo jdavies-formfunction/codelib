@@ -133,24 +133,24 @@ function loadSolutions(selectedTags = []) {
                 const card = document.createElement('div');
                 card.className = 'solution-card';
 
-                card.innerHTML = `...`;
-                    list.appendChild(card);
-                    <h3>${escapeHtml(data.title)}</h3>
-                    <p>${escapeHtml(data.description)}</p>
-                    <div class="code-block"><strong>Initial:</strong><br>${escapeHtml(data.initialCode)}</div>
-                    <div class="code-block"><strong>Final:</strong><br>${escapeHtml(data.finalCode)}</div>
-                    ${data.additionalScripts ? `<div class="code-block"><strong>Scripts:</strong><br>${escapeHtml(data.additionalScripts)}</div>` : ''}
-                    <div class="code-block"><strong>Notes:</strong><br>${escapeHtml(data.notes || '')}</div>
-                    <div class="tags">${(data.tags || []).map(tag => {
-                        allTags.add(tag);
-                        return `<span class="tag">${escapeHtml(tag)}</span>`;
-                    }).join('')}</div>
-                    <div class="button-group">
-                        <button class="view-button" data-id="${doc.id}">View</button>
-                        <button class="edit-button" data-id="${doc.id}">Edit</button>
-                        <button class="delete-button" data-id="${doc.id}">Delete</button>
-                    </div>
-                `;
+                card.innerHTML = `
+    <h3>${escapeHtml(data.title)}</h3>
+    <p>${escapeHtml(data.description)}</p>
+    <div class="code-block"><strong>Initial:</strong><br>${escapeHtml(data.initialCode)}</div>
+    <div class="code-block"><strong>Final:</strong><br>${escapeHtml(data.finalCode)}</div>
+    ${data.additionalScripts ? `<div class="code-block"><strong>Scripts:</strong><br>${escapeHtml(data.additionalScripts)}</div>` : ''}
+    <div class="code-block"><strong>Notes:</strong><br>${escapeHtml(data.notes || '')}</div>
+    <div class="tags">${(data.tags || []).map(tag => {
+        allTags.add(tag);
+        return `<span class="tag">${escapeHtml(tag)}</span>`;
+    }).join('')}</div>
+    <div class="button-group">
+        <button class="view-button" data-id="${doc.id}">View</button>
+        <button class="edit-button" data-id="${doc.id}">Edit</button>
+        <button class="delete-button" data-id="${doc.id}">Delete</button>
+    </div>
+`;
+list.appendChild(card);
 });
             renderTagFilters(Array.from(allTags), selectedTags);
 
