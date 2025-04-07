@@ -228,20 +228,15 @@ function editSolution(id) {
                 document.getElementById('initialCode').value = data.initialCode || '';
                 document.getElementById('finalCode').value = data.finalCode || '';
                 document.getElementById('additionalScripts').value = data.additionalScripts || '';
-                document.getElementById('tags').value = (data.tags || []).join(', ');
+                document.getElementById('tags').value = (data.tags || []).join(',');
                 document.getElementById('notes').value = data.notes || '';
 
                 // Store the solution ID for the update
                 document.getElementById('solutionForm').dataset.solutionId = id;
 
-                // Change the submit handler to update the solution
-                document.getElementById('solutionForm').onsubmit = function(e) {
-                    e.preventDefault();
-                    const solutionId = this.dataset.solutionId;
-                    if (solutionId) {
-                        updateSolution(solutionId);
-                    }
-                };
+                // Change the submit button text to indicate editing
+                const submitButton = document.querySelector('#solutionForm button[type="submit"]');
+                submitButton.textContent = 'Update Solution';
 
                 // Switch to the add view
                 document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -262,7 +257,50 @@ function editSolution(id) {
         });
 }
 
-// Function to update a solution
+// Update the form submit handler in your existing code
+document.getElementById('solutionForm').addEventListener('submit', e => {
+    e.preventDefault();
+
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+
+    const solutionId = e.target.dataset.solutionId;
+    
+    if (solutionId) {
+        // We're editing an existing solution
+        updateSolution(solutionId);
+    } else {
+        // We're creating a new solution
+        const title = document.getElementById('title').value;
+        const description = document.getElementById('description').value;
+        const initialCode = document.getElementById('initialCode').value;
+        const finalCode = document.getElementById('finalCode').value;
+        const additionalScripts = document.getElementById('additionalScripts').value;
+        const tags = document.getElementById('tags').value.split(',').map(t => t.trim()).filter(Boolean);
+        const notes = document.getElementById('notes').value;
+
+        db.collection('solutions').add({
+            uid: user.uid,
+            title,
+            description,
+            initialCode,
+            finalCode,
+            additionalScripts,
+            tags,
+            notes,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+            document.getElementById('solutionForm').reset();
+            document.getElementById('title').focus();
+            alert('Solution saved!');
+            loadSolutions(); // Reload the solutions list
+        }).catch(err => {
+            console.error('Error saving solution:', err);
+            alert('Error saving solution: ' + err.message);
+        });
+    }
+});
+
 function updateSolution(id) {
     const user = firebase.auth().currentUser;
     if (!user) return;
@@ -284,7 +322,7 @@ function updateSolution(id) {
     // Show loading state
     const submitButton = document.querySelector('#solutionForm button[type="submit"]');
     const originalButtonText = submitButton.textContent;
-    submitButton.textContent = 'Saving...';
+    submitButton.textContent = 'Updating...';
     submitButton.disabled = true;
 
     db.collection('solutions').doc(id).update({
@@ -302,12 +340,14 @@ function updateSolution(id) {
         document.getElementById('solutionForm').reset();
         // Remove the stored solution ID
         document.getElementById('solutionForm').removeAttribute('data-solution-id');
+        // Reset the submit button text
+        submitButton.textContent = 'Save Solution';
         // Switch back to the solutions list view
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.getElementById('solutionsView').classList.add('active');
+        document.getElementById('viewView').classList.add('active');
         // Update navigation
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-        document.querySelector('[data-view="solutions"]').classList.add('active');
+        document.querySelector('[data-view="view"]').classList.add('active');
         // Reload the solutions list
         loadSolutions();
     })
