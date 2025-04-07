@@ -79,9 +79,6 @@ document.getElementById('solutionForm').addEventListener('submit', e => {
     }).catch(err => console.error('Error saving solution:', err));
 });
 
-// Existing code for loading solutions...
-// Modify the solution card creation to include a "View" button.
-
 function loadSolutions(selectedTags = []) {
     const user = firebase.auth().currentUser;
     if (!user) {
@@ -152,6 +149,15 @@ function loadSolutions(selectedTags = []) {
                     deleteSolution(id);
                 });
             });
+
+                // Add event listener for "Edit" buttons
+document.querySelectorAll('.edit-button').forEach(button => {
+    button.addEventListener('click', () => {
+        const id = button.getAttribute('data-id');
+        editSolution(id);
+    });
+});
+
         })
         .catch(error => {
             console.error('Error loading solutions:', error);
@@ -172,6 +178,68 @@ function deleteSolution(id) {
             console.error('Error deleting solution:', error);
         });
 }
+
+// Funtion to edit solution
+    function editSolution(id) {
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+
+    db.collection('solutions').doc(id).get()
+        .then(doc => {
+            const data = doc.data();
+            if (data) {
+                // Populate the solution form with existing data
+                document.getElementById('title').value = data.title;
+                document.getElementById('description').value = data.description;
+                document.getElementById('initialCode').value = data.initialCode;
+                document.getElementById('finalCode').value = data.finalCode;
+                document.getElementById('additionalScripts').value = data.additionalScripts || '';
+                document.getElementById('tags').value = data.tags.join(', ');
+                document.getElementById('notes').value = data.notes || '';
+
+                // Change the submit handler to update the solution instead of adding a new one
+                document.getElementById('solutionForm').onsubmit = function (e) {
+                    e.preventDefault();
+                    updateSolution(id);
+                };
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching solution:', error);
+        });
+}
+
+// Funtion to update solution
+function updateSolution(id) {
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+
+    const title = document.getElementById('title').value;
+    const description = document.getElementById('description').value;
+    const initialCode = document.getElementById('initialCode').value;
+    const finalCode = document.getElementById('finalCode').value;
+    const additionalScripts = document.getElementById('additionalScripts').value;
+    const tags = document.getElementById('tags').value.split(',').map(t => t.trim()).filter(Boolean);
+    const notes = document.getElementById('notes').value;
+
+    db.collection('solutions').doc(id).update({
+        title,
+        description,
+        initialCode,
+        finalCode,
+        additionalScripts,
+        tags,
+        notes,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+        alert('Solution updated!');
+        document.getElementById('solutionForm').reset();
+        loadSolutions(); // Reload the list of solutions
+    }).catch(err => {
+        console.error('Error updating solution:', err);
+    });
+}
+
 
 // Function to show expanded view of a solution
 function expandSolutionView(id) {
