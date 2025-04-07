@@ -19,14 +19,15 @@ document.getElementById('loginForm').addEventListener('submit', e => {
         .catch(err => alert(err.message));
 });
 
-// Logout function
+// Logout functionality
 document.getElementById('logoutButton').addEventListener('click', () => {
     firebase.auth().signOut().then(() => {
-        // Handle UI changes after logging out
-        document.querySelector('.layout').style.display = 'none';
+        console.log('User logged out');
         document.getElementById('loginContainer').style.display = 'flex';
-        alert('Logged out successfully!');
-    }).catch(err => alert(err.message));
+        document.querySelector('.layout').style.display = 'none';
+    }).catch((error) => {
+        console.error('Error logging out:', error);
+    });
 });
 
 // View switcher
