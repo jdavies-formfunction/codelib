@@ -204,28 +204,46 @@ function editSolution(id) {
     const user = firebase.auth().currentUser;
     if (!user) return;
 
+    // Store the original form submit handler
+    const originalSubmitHandler = document.getElementById('solutionForm').onsubmit;
+
     db.collection('solutions').doc(id).get()
         .then(doc => {
             const data = doc.data();
             if (data) {
                 // Populate the solution form with existing data
-                document.getElementById('title').value = data.title;
-                document.getElementById('description').value = data.description;
-                document.getElementById('initialCode').value = data.initialCode;
-                document.getElementById('finalCode').value = data.finalCode;
+                document.getElementById('title').value = data.title || '';
+                document.getElementById('description').value = data.description || '';
+                document.getElementById('initialCode').value = data.initialCode || '';
+                document.getElementById('finalCode').value = data.finalCode || '';
                 document.getElementById('additionalScripts').value = data.additionalScripts || '';
-                document.getElementById('tags').value = data.tags.join(', ');
+                document.getElementById('tags').value = (data.tags || []).join(', ');
                 document.getElementById('notes').value = data.notes || '';
 
-                // Change the submit handler to update the solution instead of adding a new one
-                document.getElementById('solutionForm').onsubmit = function (e) {
+                // Store the solution ID for the update
+                document.getElementById('solutionForm').dataset.solutionId = id;
+
+                // Change the submit handler to update the solution
+                document.getElementById('solutionForm').onsubmit = function(e) {
                     e.preventDefault();
-                    updateSolution(id);
+                    const solutionId = this.dataset.solutionId;
+                    if (solutionId) {
+                        updateSolution(solutionId);
+                    }
                 };
+
+                // Switch to the solution form view
+                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                document.getElementById('solutionView').classList.add('active');
+                
+                // Update navigation
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                document.querySelector('[data-view="solution"]').classList.add('active');
             }
         })
         .catch(error => {
             console.error('Error fetching solution:', error);
+            alert('Error loading solution for editing');
         });
 }
 
@@ -234,13 +252,25 @@ function updateSolution(id) {
     const user = firebase.auth().currentUser;
     if (!user) return;
 
-    const title = document.getElementById('title').value;
-    const description = document.getElementById('description').value;
-    const initialCode = document.getElementById('initialCode').value;
-    const finalCode = document.getElementById('finalCode').value;
-    const additionalScripts = document.getElementById('additionalScripts').value;
+    const title = document.getElementById('title').value.trim();
+    const description = document.getElementById('description').value.trim();
+    const initialCode = document.getElementById('initialCode').value.trim();
+    const finalCode = document.getElementById('finalCode').value.trim();
+    const additionalScripts = document.getElementById('additionalScripts').value.trim();
     const tags = document.getElementById('tags').value.split(',').map(t => t.trim()).filter(Boolean);
-    const notes = document.getElementById('notes').value;
+    const notes = document.getElementById('notes').value.trim();
+
+    // Validate required fields
+    if (!title) {
+        alert('Title is required');
+        return;
+    }
+
+    // Show loading state
+    const submitButton = document.querySelector('#solutionForm button[type="submit"]');
+    const originalButtonText = submitButton.textContent;
+    submitButton.textContent = 'Saving...';
+    submitButton.disabled = true;
 
     db.collection('solutions').doc(id).update({
         title,
@@ -251,12 +281,29 @@ function updateSolution(id) {
         tags,
         notes,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(() => {
-        alert('Solution updated!');
+    })
+    .then(() => {
+        alert('Solution updated successfully!');
         document.getElementById('solutionForm').reset();
-        loadSolutions(); // Reload the list of solutions
-    }).catch(err => {
+        // Remove the stored solution ID
+        document.getElementById('solutionForm').removeAttribute('data-solution-id');
+        // Switch back to the solutions list view
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById('solutionsView').classList.add('active');
+        // Update navigation
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        document.querySelector('[data-view="solutions"]').classList.add('active');
+        // Reload the solutions list
+        loadSolutions();
+    })
+    .catch(err => {
         console.error('Error updating solution:', err);
+        alert('Error updating solution: ' + err.message);
+    })
+    .finally(() => {
+        // Restore button state
+        submitButton.textContent = originalButtonText;
+        submitButton.disabled = false;
     });
 }
 
