@@ -202,14 +202,25 @@ function deleteSolution(id) {
 // Function to edit a solution
 function editSolution(id) {
     const user = firebase.auth().currentUser;
-    if (!user) return;
+    if (!user) {
+        console.error('No user logged in');
+        alert('You must be logged in to edit solutions');
+        return;
+    }
 
-    // Store the original form submit handler
-    const originalSubmitHandler = document.getElementById('solutionForm').onsubmit;
+    console.log('Attempting to edit solution with ID:', id);
 
     db.collection('solutions').doc(id).get()
         .then(doc => {
+            if (!doc.exists) {
+                console.error('No solution found with ID:', id);
+                alert('Solution not found');
+                return;
+            }
+
             const data = doc.data();
+            console.log('Retrieved solution data:', data);
+
             if (data) {
                 // Populate the solution form with existing data
                 document.getElementById('title').value = data.title || '';
@@ -242,8 +253,12 @@ function editSolution(id) {
             }
         })
         .catch(error => {
-            console.error('Error fetching solution:', error);
-            alert('Error loading solution for editing');
+            console.error('Detailed error when fetching solution:', {
+                code: error.code,
+                message: error.message,
+                stack: error.stack
+            });
+            alert('Error loading solution for editing: ' + error.message);
         });
 }
 
