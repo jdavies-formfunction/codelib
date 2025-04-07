@@ -1,27 +1,27 @@
 // script.js
 
-// Firebase Auth
+// Firebase Auth state observer
 firebase.auth().onAuthStateChanged(user => {
     if (user) {
-        document.querySelector('.layout').style.display = 'flex';
         document.getElementById('loginContainer').style.display = 'none';
-        loadSolutions();
+        document.querySelector('.layout').style.display = 'flex';
+        loadSolutions(); // Load saved solutions
     } else {
-        document.querySelector('.layout').style.display = 'none';
         document.getElementById('loginContainer').style.display = 'flex';
+        document.querySelector('.layout').style.display = 'none';
     }
 });
 
-// Login form submit
+// Handle login form submission
 document.getElementById('loginForm').addEventListener('submit', e => {
     e.preventDefault();
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     firebase.auth().signInWithEmailAndPassword(email, password)
-        .catch(err => alert(err.message));
+        .catch(error => alert(error.message));
 });
 
-// View switcher
+// Switch between views
 document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', e => {
         e.preventDefault();
@@ -32,125 +32,111 @@ document.querySelectorAll('.nav-link').forEach(link => {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById(view + 'View').classList.add('active');
 
-        if (view === 'view') loadSolutions();
+        // Show tag filter only in "View All"
+        document.getElementById('tagFilter').style.display = (view === 'view') ? 'block' : 'none';
     });
 });
 
-// Firestore reference
-const db = firebase.firestore();
-
-// Save solution
-document.getElementById('solutionForm').addEventListener('submit', e => {
+// Handle solution form submission
+document.getElementById('solutionForm').addEventListener('submit', async e => {
     e.preventDefault();
 
     const user = firebase.auth().currentUser;
     if (!user) return;
 
-    const title = document.getElementById('title').value;
-    const description = document.getElementById('description').value;
-    const initialCode = document.getElementById('initialCode').value;
-    const finalCode = document.getElementById('finalCode').value;
-    const additionalScripts = document.getElementById('additionalScripts').value;
-    const tags = document.getElementById('tags').value.split(',').map(t => t.trim()).filter(Boolean);
-    const notes = document.getElementById('notes').value;
+    const solution = {
+        userId: user.uid,
+        title: document.getElementById('title').value,
+        description: document.getElementById('description').value,
+        initialCode: document.getElementById('initialCode').value,
+        finalCode: document.getElementById('finalCode').value,
+        additionalScripts: document.getElementById('additionalScripts').value,
+        tags: document.getElementById('tags').value.split(',').map(tag => tag.trim()).filter(tag => tag),
+        notes: document.getElementById('notes').value,
+        createdAt: new Date().toISOString()
+    };
 
-    db.collection('solutions').add({
-        uid: user.uid,
-        title,
-        description,
-        initialCode,
-        finalCode,
-        additionalScripts,
-        tags,
-        notes,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(() => {
-        document.getElementById('solutionForm').reset();
+    try {
+        await firebase.firestore().collection('solutions').add(solution);
         alert('Solution saved!');
-    }).catch(err => console.error('Error saving solution:', err));
+        document.getElementById('solutionForm').reset();
+        loadSolutions();
+    } catch (error) {
+        console.error('Error saving solution:', error);
+        alert('Failed to save solution.');
+    }
 });
 
-// Load and display solutions
-function loadSolutions(selectedTags = []) {
+// Load solutions from Firestore
+async function loadSolutions() {
     const user = firebase.auth().currentUser;
     if (!user) return;
 
-    db.collection('solutions')
-        .where('uid', '==', user.uid)
+    const snapshot = await firebase.firestore()
+        .collection('solutions')
+        .where('userId', '==', user.uid)
         .orderBy('createdAt', 'desc')
-        .get()
-        .then(snapshot => {
-            const list = document.getElementById('solutionsList');
-            list.innerHTML = '';
+        .get();
 
-            const allTags = new Set();
+    const solutionsList = document.getElementById('solutionsList');
+    solutionsList.innerHTML = '';
 
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                const docId = doc.id;
+    const tagsSet = new Set();
 
-                if (
-                    selectedTags.length &&
-                    !selectedTags.every(tag => data.tags?.includes(tag))
-                ) {
-                    return; // Skip if it doesn't match the filter
-                }
+    snapshot.forEach(doc => {
+        const solution = doc.data();
+        solution.id = doc.id;
+        solution.tags.forEach(tag => tagsSet.add(tag));
+        solutionsList.appendChild(createSolutionCard(solution));
+    });
 
-                const card = document.createElement('div');
-                card.className = 'solution-card';
-
-                card.innerHTML = `
-                    <h3>${data.title}</h3>
-                    <p>${data.description}</p>
-                    <div class="code-block"><strong>Initial:</strong><br>${data.initialCode}</div>
-                    <div class="code-block"><strong>Final:</strong><br>${data.finalCode}</div>
-                    ${data.additionalScripts ? `<div class="code-block"><strong>Scripts:</strong><br>${data.additionalScripts}</div>` : ''}
-                    <div class="code-block"><strong>Notes:</strong><br>${data.notes || ''}</div>
-                    <div class="tags">${(data.tags || []).map(tag => {
-                        allTags.add(tag);
-                        return `<span class="tag">${tag}</span>`;
-                    }).join('')}</div>
-                `;
-
-                list.appendChild(card);
-            });
-
-            renderTagFilters(Array.from(allTags), selectedTags);
-        });
+    renderTagFilters([...tagsSet]);
 }
 
-// Render tag checkboxes
-function renderTagFilters(tags, selectedTags = []) {
-    const container = document.getElementById('tagList');
-    const wrapper = document.getElementById('tagFilter');
-    container.innerHTML = '';
+// Create solution card DOM
+function createSolutionCard(solution) {
+    const card = document.createElement('div');
+    card.className = 'solution-card';
+    card.setAttribute('data-tags', solution.tags.join(','));
 
-    if (tags.length === 0) {
-        wrapper.style.display = 'none';
-        return;
-    }
+    card.innerHTML = `
+        <h3>${solution.title}</h3>
+        <p>${solution.description}</p>
+        <div class="code-block"><strong>Initial:</strong><br>${solution.initialCode}</div>
+        <div class="code-block"><strong>Final:</strong><br>${solution.finalCode}</div>
+        ${solution.additionalScripts ? `<div class="code-block"><strong>Additional Scripts:</strong><br>${solution.additionalScripts}</div>` : ''}
+        ${solution.notes ? `<p><strong>Notes:</strong> ${solution.notes}</p>` : ''}
+        <div class="tags">${solution.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>
+    `;
 
-    wrapper.style.display = 'block';
+    return card;
+}
 
+// Render tag filters
+function renderTagFilters(tags) {
+    const tagList = document.getElementById('tagList');
+    tagList.innerHTML = '';
     tags.forEach(tag => {
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.id = `tag-${tag}`;
-        checkbox.className = 'tag-checkbox';
-        checkbox.value = tag;
-        checkbox.checked = selectedTags.includes(tag);
+        const id = `tag-${tag}`;
+        tagList.innerHTML += `
+            <input type="checkbox" class="tag-checkbox" id="${id}" value="${tag}">
+            <label for="${id}" class="tag-label">${tag}</label>
+        `;
+    });
 
-        const label = document.createElement('label');
-        label.className = 'tag-label';
-        label.htmlFor = `tag-${tag}`;
-        label.textContent = tag;
+    document.querySelectorAll('.tag-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', filterSolutionsByTags);
+    });
+}
 
-        checkbox.addEventListener('change', () => {
-            const selected = Array.from(container.querySelectorAll('.tag-checkbox:checked')).map(cb => cb.value);
-            loadSolutions(selected);
-        });
+// Filter displayed solutions by selected tags
+function filterSolutionsByTags() {
+    const selectedTags = Array.from(document.querySelectorAll('.tag-checkbox:checked'))
+        .map(cb => cb.value);
 
-        container.appendChild(checkbox);
-        container.appendChild(label);
+    document.querySelectorAll('.solution-card').forEach(card => {
+        const cardTags = card.getAttribute('data-tags').split(',');
+        const isVisible = selectedTags.length === 0 || selectedTags.some(tag => cardTags.includes(tag));
+        card.style.display = isVisible ? '' : 'none';
     });
 }
