@@ -176,11 +176,21 @@ function renderTagFilters(tags, selectedTags = []) {
 const solutions = JSON.parse(localStorage.getItem('solutions'));
 if (solutions && solutions.length > 0) {
     console.log('Solutions found in localStorage:', solutions);  // Debug log
+    const user = firebase.auth().currentUser;
+
+    if (!user) {
+        console.error('No user logged in! Cannot migrate solutions.');
+        return;
+    }
+
     solutions.forEach(solution => {
         console.log('Migrating solution:', solution);  // Debug log
 
+        // Use the solution's id as a fallback if uid is not available
+        const solutionId = solution.id || user.uid;  // Fallback to user.uid if id is not present
+
         db.collection('solutions').add({
-            uid: solution.uid,
+            uid: solutionId,  // Use solution.id or fallback to user.uid
             title: solution.title,
             description: solution.description,
             initialCode: solution.initialCode,
