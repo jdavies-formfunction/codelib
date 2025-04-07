@@ -133,7 +133,8 @@ function loadSolutions(selectedTags = []) {
                 const card = document.createElement('div');
                 card.className = 'solution-card';
 
-                card.innerHTML = `
+                card.innerHTML = `...`;
+                    list.appendChild(card);
                     <h3>${escapeHtml(data.title)}</h3>
                     <p>${escapeHtml(data.description)}</p>
                     <div class="code-block"><strong>Initial:</strong><br>${escapeHtml(data.initialCode)}</div>
@@ -150,7 +151,7 @@ function loadSolutions(selectedTags = []) {
                         <button class="delete-button" data-id="${doc.id}">Delete</button>
                     </div>
                 `;
-
+});
             renderTagFilters(Array.from(allTags), selectedTags);
 
             // Add event listener for "View" buttons
