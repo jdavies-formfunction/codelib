@@ -171,7 +171,7 @@ function renderTagFilters(tags, selectedTags = []) {
         container.appendChild(label);
     });
 }
-
+/*
 // Firebase authentication state listener
 firebase.auth().onAuthStateChanged(user => {
     if (user) {
@@ -214,4 +214,4 @@ function migrateSolutions(user) {
         console.log('No solutions found in localStorage');
     }
 }
-
+*/
