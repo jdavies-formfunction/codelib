@@ -21,10 +21,30 @@ body {
     width: 300px;
     background-color: #29253A;
     color: white;
-    padding: 60px;
+    padding: 60px 20px 20px 20px; /* Adjust padding for the bottom space */
     position: fixed;
     height: 100vh;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* This will push the logout button to the bottom */
+}
+
+/* Logout Button Styles */
+#logoutButton {
+    margin-top: auto; /* Push the button to the bottom of the sidebar */
+    padding: 10px 15px;
+    background-color: #f44336; /* Red color */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+#logoutButton:hover {
+    background-color: #d32f2f;
 }
 
 .sidebar h2 {
