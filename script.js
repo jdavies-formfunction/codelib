@@ -1,5 +1,6 @@
 // Firebase Auth
 firebase.auth().onAuthStateChanged(user => {
+    console.log("User state changed:", user); // Debug log
     if (user) {
         document.querySelector('.layout').style.display = 'flex';
         document.getElementById('loginContainer').style.display = 'none';
@@ -16,7 +17,13 @@ document.getElementById('loginForm').addEventListener('submit', e => {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     firebase.auth().signInWithEmailAndPassword(email, password)
-        .catch(err => alert(err.message));
+        .then(() => {
+            console.log('User logged in successfully');
+        })
+        .catch(err => {
+            alert(err.message);
+            console.error("Login Error:", err);
+        });
 });
 
 // Logout functionality
@@ -75,8 +82,11 @@ document.getElementById('solutionForm').addEventListener('submit', e => {
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
     }).then(() => {
         document.getElementById('solutionForm').reset();
+        document.getElementById('title').focus(); // Focus on the title input after form reset
         alert('Solution saved!');
-    }).catch(err => console.error('Error saving solution:', err));
+    }).catch(err => {
+        console.error('Error saving solution:', err);
+    });
 });
 
 function loadSolutions(selectedTags = []) {
@@ -114,23 +124,22 @@ function loadSolutions(selectedTags = []) {
                 card.className = 'solution-card';
 
                 card.innerHTML = `
-    <h3>${escapeHtml(data.title)}</h3>
-    <p>${escapeHtml(data.description)}</p>
-    <div class="code-block"><strong>Initial:</strong><br>${escapeHtml(data.initialCode)}</div>
-    <div class="code-block"><strong>Final:</strong><br>${escapeHtml(data.finalCode)}</div>
-    ${data.additionalScripts ? `<div class="code-block"><strong>Scripts:</strong><br>${escapeHtml(data.additionalScripts)}</div>` : ''}
-    <div class="code-block"><strong>Notes:</strong><br>${escapeHtml(data.notes || '')}</div>
-    <div class="tags">${(data.tags || []).map(tag => {
-        allTags.add(tag);
-        return `<span class="tag">${escapeHtml(tag)}</span>`;
-    }).join('')}</div>
-    <div class="button-group">
-        <button class="view-button" data-id="${doc.id}">View</button>
-        <button class="edit-button" data-id="${doc.id}">Edit</button>
-        <button class="delete-button" data-id="${doc.id}">Delete</button>
-    </div>
-`;
-
+                    <h3>${escapeHtml(data.title)}</h3>
+                    <p>${escapeHtml(data.description)}</p>
+                    <div class="code-block"><strong>Initial:</strong><br>${escapeHtml(data.initialCode)}</div>
+                    <div class="code-block"><strong>Final:</strong><br>${escapeHtml(data.finalCode)}</div>
+                    ${data.additionalScripts ? `<div class="code-block"><strong>Scripts:</strong><br>${escapeHtml(data.additionalScripts)}</div>` : ''}
+                    <div class="code-block"><strong>Notes:</strong><br>${escapeHtml(data.notes || '')}</div>
+                    <div class="tags">${(data.tags || []).map(tag => {
+                        allTags.add(tag);
+                        return `<span class="tag">${escapeHtml(tag)}</span>`;
+                    }).join('')}</div>
+                    <div class="button-group">
+                        <button class="view-button" data-id="${doc.id}">View</button>
+                        <button class="edit-button" data-id="${doc.id}">Edit</button>
+                        <button class="delete-button" data-id="${doc.id}">Delete</button>
+                    </div>
+                `;
 
             renderTagFilters(Array.from(allTags), selectedTags);
 
@@ -150,13 +159,13 @@ function loadSolutions(selectedTags = []) {
                 });
             });
 
-                // Add event listener for "Edit" buttons
-document.querySelectorAll('.edit-button').forEach(button => {
-    button.addEventListener('click', () => {
-        const id = button.getAttribute('data-id');
-        editSolution(id);
-    });
-});
+            // Add event listener for "Edit" buttons
+            document.querySelectorAll('.edit-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const id = button.getAttribute('data-id');
+                    editSolution(id);
+                });
+            });
 
         })
         .catch(error => {
@@ -179,8 +188,8 @@ function deleteSolution(id) {
         });
 }
 
-// Funtion to edit solution
-    function editSolution(id) {
+// Function to edit a solution
+function editSolution(id) {
     const user = firebase.auth().currentUser;
     if (!user) return;
 
@@ -209,7 +218,7 @@ function deleteSolution(id) {
         });
 }
 
-// Funtion to update solution
+// Function to update a solution
 function updateSolution(id) {
     const user = firebase.auth().currentUser;
     if (!user) return;
@@ -239,7 +248,6 @@ function updateSolution(id) {
         console.error('Error updating solution:', err);
     });
 }
-
 
 // Function to show expanded view of a solution
 function expandSolutionView(id) {
@@ -286,7 +294,6 @@ function expandSolutionView(id) {
         });
 }
 
-
 // Render tag checkboxes
 function renderTagFilters(tags, selectedTags = []) {
     const container = document.getElementById('tagList');
@@ -322,47 +329,3 @@ function renderTagFilters(tags, selectedTags = []) {
         container.appendChild(label);
     });
 }
-/*
-// Firebase authentication state listener
-firebase.auth().onAuthStateChanged(user => {
-    if (user) {
-        // User is authenticated, proceed with migration
-        migrateSolutions(user);
-    } else {
-        console.error('No user logged in! Cannot migrate solutions.');
-    }
-});
-
-// Function to migrate solutions
-function migrateSolutions(user) {
-    // Retrieve solutions from localStorage
-    const solutions = JSON.parse(localStorage.getItem('solutions'));
-    
-    if (solutions && solutions.length > 0) {
-        console.log('Solutions found in localStorage:', solutions);
-
-        solutions.forEach(solution => {
-            console.log('Migrating solution:', solution);
-
-            // Use the logged-in user's UID
-            db.collection('solutions').add({
-                uid: user.uid,  // Ensure the user UID is used
-                title: solution.title,
-                description: solution.description,
-                initialCode: solution.initialCode,
-                finalCode: solution.finalCode,
-                additionalScripts: solution.additionalScripts,
-                tags: solution.tags,
-                notes: solution.notes,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(() => {
-                console.log('Solution successfully added to Firestore');
-            }).catch(err => {
-                console.error('Error saving solution to Firestore:', err);
-            });
-        });
-    } else {
-        console.log('No solutions found in localStorage');
-    }
-}
-*/
