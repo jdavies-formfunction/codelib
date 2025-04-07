@@ -79,6 +79,9 @@ document.getElementById('solutionForm').addEventListener('submit', e => {
     }).catch(err => console.error('Error saving solution:', err));
 });
 
+// Existing code for loading solutions...
+// Modify the solution card creation to include a "View" button.
+
 function loadSolutions(selectedTags = []) {
     const user = firebase.auth().currentUser;
     if (!user) {
