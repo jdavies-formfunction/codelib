@@ -245,7 +245,7 @@ button:hover {
     font-family: 'Inter', sans-serif;
     background-color: #F7485D;
     color: white;
-    padding: 20px 20px;
+    padding: 10px 20px;
     border: none;
     border-radius: 40px;
     cursor: pointer;
@@ -256,6 +256,7 @@ button:hover {
 .delete-button:hover {
     background-color: #A63441;
 }
+
 
 /* Login Styles */
 .login-container {
