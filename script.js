@@ -243,13 +243,13 @@ function editSolution(id) {
                     }
                 };
 
-                // Switch to the solution form view
+                // Switch to the add view
                 document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-                document.getElementById('solutionView').classList.add('active');
+                document.getElementById('addView').classList.add('active');
                 
                 // Update navigation
                 document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-                document.querySelector('[data-view="solution"]').classList.add('active');
+                document.querySelector('[data-view="add"]').classList.add('active');
             }
         })
         .catch(error => {
