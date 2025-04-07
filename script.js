@@ -95,7 +95,7 @@ function loadSolutions(selectedTags = []) {
         .then(snapshot => {
             console.log('Snapshot:', snapshot);
             const list = document.getElementById('solutionsList');
-            list.innerHTML = '';
+            list.innerHTML = ''; // Clear previous list
 
             const allTags = new Set();
 
@@ -112,6 +112,7 @@ function loadSolutions(selectedTags = []) {
 
                 const card = document.createElement('div');
                 card.className = 'solution-card';
+                card.dataset.id = doc.id; // Store the solution ID on the card
 
                 card.innerHTML = `
                     <h3>${data.title}</h3>
@@ -124,7 +125,26 @@ function loadSolutions(selectedTags = []) {
                         allTags.add(tag);
                         return `<span class="tag">${tag}</span>`;
                     }).join('')}</div>
+                    <div class="button-group">
+                        <button class="delete-button">Delete</button>
+                    </div>
                 `;
+
+                // Add event listener for delete button
+                const deleteButton = card.querySelector('.delete-button');
+                deleteButton.addEventListener('click', () => {
+                    const solutionId = card.dataset.id;
+
+                    // Delete from Firestore
+                    db.collection('solutions').doc(solutionId).delete()
+                        .then(() => {
+                            console.log('Solution deleted from Firestore');
+                            card.remove(); // Remove from the DOM
+                        })
+                        .catch(error => {
+                            console.error('Error deleting solution:', error);
+                        });
+                });
 
                 list.appendChild(card);
             });
@@ -135,6 +155,7 @@ function loadSolutions(selectedTags = []) {
             console.error('Error loading solutions:', error);
         });
 }
+
 
 // Render tag checkboxes
 function renderTagFilters(tags, selectedTags = []) {
