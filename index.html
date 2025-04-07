@@ -28,22 +28,26 @@
 
     <!-- Main Content (initially hidden) -->
     <div class="layout" style="display: none;">
-        <!-- Navigation Sidebar -->
-        <nav class="sidebar">
-            <h2>Navigation</h2>
-            <ul>
-                <li><a href="#" class="nav-link active" data-view="add">Add New</a></li>
-                <li><a href="#" class="nav-link" data-view="view">View All</a></li>
-            </ul>
-            
-            <!-- Tag Filter (initially hidden) -->
-            <div id="tagFilter" class="tag-filter" style="display: none;">
-                <h3>Filter by Tags</h3>
-                <div id="tagList" class="tag-list">
-                    <!-- Tags will be populated by JavaScript -->
-                </div>
-            </div>
-        </nav>
+        <!-- Sidebar Navigation -->
+<nav class="sidebar">
+    <h2>Navigation</h2>
+    <ul>
+        <li><a href="#" class="nav-link active" data-view="add">Add New</a></li>
+        <li><a href="#" class="nav-link" data-view="view">View All</a></li>
+    </ul>
+    
+    <!-- Tag Filter (initially hidden) -->
+    <div id="tagFilter" class="tag-filter" style="display: none;">
+        <h3>Filter by Tags</h3>
+        <div id="tagList" class="tag-list">
+            <!-- Tags will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Logout Button (Positioned at the bottom of the sidebar) -->
+    <button id="logoutButton">Logout</button>
+</nav>
+
 
         <!-- Main Content Area -->
         <main class="main-content">
@@ -97,10 +101,7 @@
             </div>
         </main>
 
-        <!-- Logout Button -->
-        <div>
-            <button id="logoutButton">Logout</button>
-        </div>
+      
     </div>
 
     <!-- Firebase SDK -->
