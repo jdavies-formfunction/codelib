@@ -1,280 +1,156 @@
 // script.js
-console.log('Script starting...');
 
-try {
-    // login
-    let currentUser = null;
-
-    // Check authentication state
-    firebase.auth().onAuthStateChanged((user) => {
-        console.log('Auth state changed:', user);
-        if (user) {
-            currentUser = user;
-            document.getElementById('loginContainer').style.display = 'none';
-            document.querySelector('.layout').style.display = 'flex';
-        } else {
-            currentUser = null;
-            document.getElementById('loginContainer').style.display = 'flex';
-            document.querySelector('.layout').style.display = 'none';
-        }
-    });
-
-    // Handle login
-    document.getElementById('loginForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-
-        firebase.auth().signInWithEmailAndPassword(email, password)
-            .catch((error) => {
-                alert('Login failed: ' + error.message);
-            });
-    });
-
-    // Add logout button to your navigation
-    function addLogoutButton() {
-        const nav = document.querySelector('.sidebar ul');
-        const logoutLi = document.createElement('li');
-        logoutLi.innerHTML = '<a href="#" class="nav-link" onclick="logout()">Logout</a>';
-        nav.appendChild(logoutLi);
-    }
-
-    // Logout function
-    function logout() {
-        firebase.auth().signOut();
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        // DOM Elements
-        const solutionForm = document.getElementById('solutionForm');
-        const solutionsList = document.getElementById('solutionsList');
-        const navLinks = document.querySelectorAll('.nav-link');
-        const views = document.querySelectorAll('.view');
-        const tagFilter = document.getElementById('tagFilter');
-        const tagList = document.getElementById('tagList');
-
-        // Load existing solutions and setup navigation
+// Firebase Auth
+firebase.auth().onAuthStateChanged(user => {
+    if (user) {
+        document.querySelector('.layout').style.display = 'flex';
+        document.getElementById('loginContainer').style.display = 'none';
         loadSolutions();
-        setupNavigation();
-        updateTagFilter();
-        addLogoutButton();
+    } else {
+        document.querySelector('.layout').style.display = 'none';
+        document.getElementById('loginContainer').style.display = 'flex';
+    }
+});
 
-        // Handle form submission
-        solutionForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Get form values
-            const solution = {
-                id: Date.now(),
-                title: document.getElementById('title').value,
-                description: document.getElementById('description').value,
-                initialCode: document.getElementById('initialCode').value,
-                finalCode: document.getElementById('finalCode').value,
-                additionalScripts: document.getElementById('additionalScripts').value,
-                tags: document.getElementById('tags').value.split(',').map(tag => tag.trim()),
-                notes: document.getElementById('notes').value,
-                date: new Date().toISOString()
-            };
-            
-            console.log('Saving solution with additionalScripts:', solution.additionalScripts);
-            
-            // Save solution
-            saveSolution(solution);
-            
-            // Reset form
-            solutionForm.reset();
-            
-            // Reload solutions and update tag filter
-            loadSolutions();
-            updateTagFilter();
+// Login form submit
+document.getElementById('loginForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    firebase.auth().signInWithEmailAndPassword(email, password)
+        .catch(err => alert(err.message));
+});
+
+// View switcher
+document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', e => {
+        e.preventDefault();
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+
+        const view = link.getAttribute('data-view');
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(view + 'View').classList.add('active');
+
+        if (view === 'view') loadSolutions();
+    });
+});
+
+// Firestore reference
+const db = firebase.firestore();
+
+// Save solution
+document.getElementById('solutionForm').addEventListener('submit', e => {
+    e.preventDefault();
+
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+
+    const title = document.getElementById('title').value;
+    const description = document.getElementById('description').value;
+    const initialCode = document.getElementById('initialCode').value;
+    const finalCode = document.getElementById('finalCode').value;
+    const additionalScripts = document.getElementById('additionalScripts').value;
+    const tags = document.getElementById('tags').value.split(',').map(t => t.trim()).filter(Boolean);
+    const notes = document.getElementById('notes').value;
+
+    db.collection('solutions').add({
+        uid: user.uid,
+        title,
+        description,
+        initialCode,
+        finalCode,
+        additionalScripts,
+        tags,
+        notes,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+        document.getElementById('solutionForm').reset();
+        alert('Solution saved!');
+    }).catch(err => console.error('Error saving solution:', err));
+});
+
+// Load and display solutions
+function loadSolutions(selectedTags = []) {
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+
+    db.collection('solutions')
+        .where('uid', '==', user.uid)
+        .orderBy('createdAt', 'desc')
+        .get()
+        .then(snapshot => {
+            const list = document.getElementById('solutionsList');
+            list.innerHTML = '';
+
+            const allTags = new Set();
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const docId = doc.id;
+
+                if (
+                    selectedTags.length &&
+                    !selectedTags.every(tag => data.tags?.includes(tag))
+                ) {
+                    return; // Skip if it doesn't match the filter
+                }
+
+                const card = document.createElement('div');
+                card.className = 'solution-card';
+
+                card.innerHTML = `
+                    <h3>${data.title}</h3>
+                    <p>${data.description}</p>
+                    <div class="code-block"><strong>Initial:</strong><br>${data.initialCode}</div>
+                    <div class="code-block"><strong>Final:</strong><br>${data.finalCode}</div>
+                    ${data.additionalScripts ? `<div class="code-block"><strong>Scripts:</strong><br>${data.additionalScripts}</div>` : ''}
+                    <div class="code-block"><strong>Notes:</strong><br>${data.notes || ''}</div>
+                    <div class="tags">${(data.tags || []).map(tag => {
+                        allTags.add(tag);
+                        return `<span class="tag">${tag}</span>`;
+                    }).join('')}</div>
+                `;
+
+                list.appendChild(card);
+            });
+
+            renderTagFilters(Array.from(allTags), selectedTags);
+        });
+}
+
+// Render tag checkboxes
+function renderTagFilters(tags, selectedTags = []) {
+    const container = document.getElementById('tagList');
+    const wrapper = document.getElementById('tagFilter');
+    container.innerHTML = '';
+
+    if (tags.length === 0) {
+        wrapper.style.display = 'none';
+        return;
+    }
+
+    wrapper.style.display = 'block';
+
+    tags.forEach(tag => {
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `tag-${tag}`;
+        checkbox.className = 'tag-checkbox';
+        checkbox.value = tag;
+        checkbox.checked = selectedTags.includes(tag);
+
+        const label = document.createElement('label');
+        label.className = 'tag-label';
+        label.htmlFor = `tag-${tag}`;
+        label.textContent = tag;
+
+        checkbox.addEventListener('change', () => {
+            const selected = Array.from(container.querySelectorAll('.tag-checkbox:checked')).map(cb => cb.value);
+            loadSolutions(selected);
         });
 
-        // Navigation setup
-        function setupNavigation() {
-            navLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const targetView = this.dataset.view;
-                    
-                    // Update active states
-                    navLinks.forEach(l => l.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // Show/hide views
-                    views.forEach(view => {
-                        view.classList.remove('active');
-                        if (view.id === targetView + 'View') {
-                            view.classList.add('active');
-                        }
-                    });
-                    
-                    // Show/hide tag filter
-                    tagFilter.style.display = targetView === 'view' ? 'block' : 'none';
-                });
-            });
-        }
-
-        // Save solution to localStorage
-        function saveSolution(solution) {
-            let solutions = JSON.parse(localStorage.getItem('solutions') || '[]');
-            solutions.push(solution);
-            localStorage.setItem('solutions', JSON.stringify(solutions));
-        }
-
-        // Load and display solutions
-        function loadSolutions() {
-            try {
-                console.log('Loading solutions...');
-                const solutions = JSON.parse(localStorage.getItem('solutions') || '[]');
-                console.log('Found solutions:', solutions);
-                console.log('Solutions with additional scripts:', solutions.filter(s => s.additionalScripts));
-                
-                solutionsList.innerHTML = '';
-                
-                if (solutions.length === 0) {
-                    solutionsList.innerHTML = '<p>No solutions found. Add your first solution!</p>';
-                    return;
-                }
-                
-                solutions.forEach(solution => {
-                    console.log('Processing solution:', solution.id, 'with additional scripts:', solution.additionalScripts);
-                    const solutionCard = createSolutionCard(solution);
-                    solutionsList.appendChild(solutionCard);
-                });
-            } catch (error) {
-                console.error('Error loading solutions:', error);
-                solutionsList.innerHTML = '<p>Error loading solutions. Please try refreshing the page.</p>';
-            }
-        }
-
-        // Create solution card
-        function createSolutionCard(solution) {
-            console.log('Creating card for solution:', solution);
-            console.log('Additional scripts value:', solution.additionalScripts);
-            console.log('Additional scripts type:', typeof solution.additionalScripts);
-            
-            const card = document.createElement('div');
-            card.className = 'solution-card';
-            
-            let additionalScriptsHtml = '';
-            if (solution.additionalScripts && solution.additionalScripts.trim() !== '') {
-                console.log('Adding additional scripts to card');
-                additionalScriptsHtml = '<h4>Additional Scripts:</h4><pre class="code-block">' + solution.additionalScripts + '</pre>';
-            } else {
-                console.log('No additional scripts to add');
-            }
-            
-            card.innerHTML = 
-                '<h3>' + solution.title + '</h3>' +
-                '<p>' + solution.description + '</p>' +
-                
-                '<h4>Initial Code:</h4>' +
-                '<pre class="code-block">' + solution.initialCode + '</pre>' +
-                
-                '<h4>Final Solution:</h4>' +
-                '<pre class="code-block">' + solution.finalCode + '</pre>' +
-                
-                additionalScriptsHtml +
-                
-                '<div class="tags">' +
-                solution.tags.map(tag => '<span class="tag">' + tag + '</span>').join('') +
-                '</div>' +
-                
-                '<p><strong>Notes:</strong> ' + solution.notes + '</p>' +
-                '<p><small>Added: ' + new Date(solution.date).toLocaleDateString() + '</small></p>' +
-                
-                '<div class="button-group">' +
-                '<button class="edit-button" onclick="editSolution(' + solution.id + ')">Edit Solution</button>' +
-                '<button class="delete-button" onclick="deleteSolution(' + solution.id + ')">Delete Solution</button>' +
-                '</div>';
-            
-            return card;
-        }
-
-        // Update tag filter
-        function updateTagFilter() {
-            const solutions = JSON.parse(localStorage.getItem('solutions') || '[]');
-            const allTags = new Set();
-            
-            solutions.forEach(solution => {
-                solution.tags.forEach(tag => allTags.add(tag));
-            });
-            
-            tagList.innerHTML = '';
-            allTags.forEach(tag => {
-                const tagContainer = document.createElement('div');
-                tagContainer.innerHTML = `
-                    <input type="checkbox" id="tag-${tag}" class="tag-checkbox">
-                    <label for="tag-${tag}" class="tag-label">${tag}</label>
-                `;
-                tagList.appendChild(tagContainer);
-                
-                // Add event listener for tag filtering
-                const checkbox = tagContainer.querySelector('input');
-                checkbox.addEventListener('change', filterSolutions);
-            });
-        }
-
-        // Filter solutions by tags
-        function filterSolutions() {
-            const selectedTags = Array.from(document.querySelectorAll('.tag-checkbox:checked'))
-                .map(checkbox => checkbox.id.replace('tag-', ''));
-            
-            const solutions = JSON.parse(localStorage.getItem('solutions') || '[]');
-            solutionsList.innerHTML = '';
-            
-            solutions.forEach(solution => {
-                if (selectedTags.length === 0 || 
-                    selectedTags.some(tag => solution.tags.includes(tag))) {
-                    const solutionCard = createSolutionCard(solution);
-                    solutionsList.appendChild(solutionCard);
-                }
-            });
-        }
-
-        // Edit solution
-        window.editSolution = function(id) {
-            const solutions = JSON.parse(localStorage.getItem('solutions') || '[]');
-            const solution = solutions.find(s => s.id === id);
-            
-            if (solution) {
-                // Populate form with solution data
-                document.getElementById('title').value = solution.title;
-                document.getElementById('description').value = solution.description;
-                document.getElementById('initialCode').value = solution.initialCode;
-                document.getElementById('finalCode').value = solution.finalCode;
-                document.getElementById('additionalScripts').value = solution.additionalScripts || '';
-                document.getElementById('tags').value = solution.tags.join(', ');
-                document.getElementById('notes').value = solution.notes;
-                
-                // Remove the old solution
-                const updatedSolutions = solutions.filter(s => s.id !== id);
-                localStorage.setItem('solutions', JSON.stringify(updatedSolutions));
-                
-                // Switch to Add New view
-                document.querySelector('[data-view="add"]').click();
-                
-                // Reload solutions and update tag filter
-                loadSolutions();
-                updateTagFilter();
-            }
-        };
-
-        // Delete solution function (moved inside DOMContentLoaded)
-        window.deleteSolution = function(id) {
-            if (confirm('Are you sure you want to delete this solution?')) {
-                const solutions = JSON.parse(localStorage.getItem('solutions') || '[]');
-                const updatedSolutions = solutions.filter(s => s.id !== id);
-                localStorage.setItem('solutions', JSON.stringify(updatedSolutions));
-                
-                // Reload solutions and update tag filter
-                loadSolutions();
-                updateTagFilter();
-            }
-        };
-
+        container.appendChild(checkbox);
+        container.appendChild(label);
     });
-
-} catch (error) {
-    console.error('Error in script:', error);
 }
