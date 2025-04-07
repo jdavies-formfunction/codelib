@@ -79,16 +79,21 @@ document.getElementById('solutionForm').addEventListener('submit', e => {
     }).catch(err => console.error('Error saving solution:', err));
 });
 
-// Load and display solutions
 function loadSolutions(selectedTags = []) {
     const user = firebase.auth().currentUser;
-    if (!user) return;
+    if (!user) {
+        console.log('No user logged in');
+        return;
+    }
+
+    console.log('Loading solutions for user:', user.uid);
 
     db.collection('solutions')
         .where('uid', '==', user.uid)
         .orderBy('createdAt', 'desc')
         .get()
         .then(snapshot => {
+            console.log('Snapshot:', snapshot);
             const list = document.getElementById('solutionsList');
             list.innerHTML = '';
 
@@ -96,7 +101,7 @@ function loadSolutions(selectedTags = []) {
 
             snapshot.forEach(doc => {
                 const data = doc.data();
-                const docId = doc.id;
+                console.log('Solution data:', data);
 
                 if (
                     selectedTags.length &&
@@ -125,6 +130,9 @@ function loadSolutions(selectedTags = []) {
             });
 
             renderTagFilters(Array.from(allTags), selectedTags);
+        })
+        .catch(error => {
+            console.error('Error loading solutions:', error);
         });
 }
 
