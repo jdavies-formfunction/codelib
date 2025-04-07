@@ -30,6 +30,15 @@ body {
     justify-content: space-between; /* This will push the logout button to the bottom */
 }
 
+@media (max-width: 768px) {
+    .sidebar {
+        width: 250px;  /* Adjust sidebar width */
+    }
+    .main-content {
+        margin-left: 250px;  /* Adjust main content margin */
+    }
+}
+
 /* Logout Button Styles */
 #logoutButton {
     margin-top: auto; /* Push the button to the bottom of the sidebar */
@@ -37,7 +46,7 @@ body {
     background-color: #f44336; /* Red color */
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 0px;
     cursor: pointer;
     font-size: 14px;
     transition: background-color 0.3s;
@@ -104,6 +113,10 @@ body {
     transition: background-color 0.3s;
 }
 
+.tag-label:hover {
+    background-color: #37AE73; /* Green color on hover */
+}
+
 .tag-checkbox:checked + .tag-label {
     background-color: #37AE73;
 }
@@ -119,7 +132,7 @@ body {
     display: none;
     background-color: #ECE8E8;
     padding: 40px;
-    border-radius: opx;
+    border-radius: 0px;
 }
 
 .view.active {
