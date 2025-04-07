@@ -171,3 +171,28 @@ function renderTagFilters(tags, selectedTags = []) {
         container.appendChild(label);
     });
 }
+
+// Retrieve solutions from localStorage and migrate to Firestore
+
+const solutions = JSON.parse(localStorage.getItem('solutions'));
+
+// Assuming you have a Firebase Firestore reference `db`:
+if (solutions) {
+    solutions.forEach(solution => {
+        db.collection('solutions').add({
+            uid: solution.uid,
+            title: solution.title,
+            description: solution.description,
+            initialCode: solution.initialCode,
+            finalCode: solution.finalCode,
+            additionalScripts: solution.additionalScripts,
+            tags: solution.tags,
+            notes: solution.notes,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        })
+        .then(() => console.log('Solution added to Firestore'))
+        .catch(err => console.error('Error saving solution to Firestore:', err));
+    });
+} else {
+    console.log('No solutions found in localStorage');
+}
